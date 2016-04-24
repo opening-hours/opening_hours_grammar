@@ -38,7 +38,7 @@ csunlightevent : 'dawn' | 'sunrise' | 'sunset' | 'dusk';
 
 /* extended hour */
 // TODO test against values in database, adjust
-cwrappinghour  : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48';
+cwrappinghour  : '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48';
 
 /* plus_or_minus */
 coffsetsymbols: '+' | '-';
@@ -159,7 +159,7 @@ small_range_selectors :
 
     holiday_sequence     : holiday (',' holiday)*;
     holiday              :
-                           singular_day_holiday (ws day_offset ws)? // Only a day shift around one day (В± 1 day) is currently defined.
+                           singular_day_holiday (ws day_offset ws)? // Only a day shift around one day (± 1 day) is currently defined.
                          | plural_day_holiday
                          ;
 
@@ -193,7 +193,7 @@ small_range_selectors :
     /**
     This notation describes a repeated event:
 
-    10:00-16:00/90 and 10:00-16:00/1:30 are evaluated as "from ten am to four pm every 1ВЅ hours".
+    10:00-16:00/90 and 10:00-16:00/1:30 are evaluated as "from ten am to four pm every 1½ hours".
     Especially departure times can be written very concise and compact using this notation.
     The interval time following the "/" is valid but ignored for opening_hours.
 
