@@ -2,6 +2,7 @@ grammar ohmin;
 
 // Basic elements
 // Trivial stuff, prefixed with 'c' and should never change during grammar development
+// Note: case SENSITIVE
 
 c247string     : '24/7';
 
@@ -12,11 +13,18 @@ chour          : '00' | '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | 
 cday           : '00' | '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31';
 
 /* wday */
-cdayoftheweek  : cworkdays | cweekend; // Unnecessary overcomplication, mainly for richer stats
-cworkdays      : 'Su' | 'Mo' | 'Tu' | 'We' | 'Th';
-cweekend       : 'Fr' | 'Sa';
+cdayoftheweek     : cworkdays | cweekend; // Unnecessary overcomplication, mainly for richer stats
+cworkdays         : cworkdays2letters | cworkdays3letters;
+cworkdays2letters : 'Mo'  | 'Tu'  |' We'  | 'Th'  | 'Fr';
+cworkdays3letters : 'Mon' | 'Tue' |' Wed' | 'Thu' | 'Fri';
+
+cweekend         : cweekend2letters | cweekend3letters;
+cweekend2letters : 'Sa'  | 'Su';
+cweekend3letters : 'Sat' | 'Sun';
 
 cweeknum       : '00' | '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48' | '49' | '50' | '51' | '52' | '53';
+
+// Is it possible to allow numeric monthss?
 cmonth         : 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
 
 /* event */
