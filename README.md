@@ -3,7 +3,7 @@ ANTLR grammar for opening_hours from OpenStreetMap
 
 ## Limitations and trade offs
 * No deep semantic ATM ("14:00-12:00" is "okay") because first iterations should be flexible
-* No soft error checking like in [opening_hours.js](https://github.com/opening-hours/opening_hours.js) (HTML-like parsing "Oh you did mistake here, let me fix this for you" is not goal of this project); because it will bloat grammar in every aspect and direction
+* No soft error checking in **min**imal version, like [opening_hours.js](https://github.com/opening-hours/opening_hours.js) (HTML-like parsing "Oh you did mistake here, let me fix this for you" is not goal of this project); because it will bloat grammar in every aspect and direction; Multiple versions of grammar (more/less restrictive) may occur over time.
 * Restrictive syntax, when it comes to WS (simpler parse tree, possibly faster parsing as result)
 
 ## Contributing 
