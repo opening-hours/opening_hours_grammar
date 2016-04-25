@@ -19,8 +19,8 @@ cday           : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' |
 cdayoftheweek     : cworkdays | cweekend; // Unnecessary overcomplication, mainly for richer stats
 
 cworkdays         : cworkdays2letters | cworkdays3letters;
-cworkdays2letters : 'Mo'  | 'Tu'  |' We'  | 'Th'  | 'Fr';
-cworkdays3letters : 'Mon' | 'Tue' |' Wed' | 'Thu' | 'Fri';
+cworkdays2letters : 'Mo'  | 'Tu'  | 'We'  | 'Th'  | 'Fr';
+cworkdays3letters : 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri';
 
 cweekend         : cweekend2letters | cweekend3letters;
 cweekend2letters : 'Sa'  | 'Su';
@@ -49,6 +49,7 @@ coffsetsymbols: '+' | '-';
 NON_ZERO_DIGIT   : '1'..'9';
 DIGIT            : '0' | NON_ZERO_DIGIT;
 
+//TODO: BUG in 2 rules below
 positive_integer          : NON_ZERO_DIGIT DIGIT*; //not sure if it is faster than '1'..'9' | '1'..'9'('0'..'9')+
 negative_integer          : '-' NON_ZERO_DIGIT DIGIT*; //duplication on purpose: negative_integer is not subtype of positive_integer
 
