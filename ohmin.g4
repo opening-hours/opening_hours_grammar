@@ -3,17 +3,28 @@ grammar ohmin;
 // Basic elements
 // Trivial stuff, prefixed with 'c' and should never change during grammar development
 // Note: case SENSITIVE
+// Note: order is important (hold "Ctrl" to inspect how input steam was tolenized in IDEA)
 
 c247string     : '24/7';
 
-FIRSTTENWITHOUTLEADINGZEROS: '0'..'9';
-FIRSTTENWITHLEADINGZEROS   : '0' FIRSTTENWITHOUTLEADINGZEROS;
+//HH_MM            : POSITIVE_INTEGER ':' POSITIVE_INTEGER;
+//TIMERANGE        : HH_MM '-' HH_MM;
 
-cminute        : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48' | '49' | '50' | '51' | '52' | '53' | '54' | '55' | '56' | '57' | '58' | '59';
-chour          : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24';
+//TODO: not sure how to include negative integer separately or why it is impossible
+//NEGATIVE_INTEGER : '-' (('1'..'9') | ('1'..'9')('0'..'9')+);
+POSITIVE_INTEGER : '0'+ | ('1'..'9') | ('1'..'9')('0'..'9')+;
+
+/* How to make them live together with rules above?
+YEAR4LETTER      : ('19' | '20') '0'..'9' '0'..'9';
+MINUTE           : '0'? '1'..'9' | ('1'..'5' '0'..'9') | '60';
+HOUR             : '0'? '1'..'9' | ('1'..'2' '0'..'9') | '21' | '22' | '23' | '24';
+ZERO             : '0';
+*/
+
+//chour          : DIGIT | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24';
 
 /* daynum */
-cday           : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31';
+//cday           : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31';
 
 /* wday */
 cdayoftheweek     : cworkdays | cweekend; // Unnecessary overcomplication, mainly for richer stats
@@ -26,7 +37,7 @@ cweekend         : cweekend2letters | cweekend3letters;
 cweekend2letters : 'Sa'  | 'Su';
 cweekend3letters : 'Sat' | 'Sun';
 
-cweeknum       : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48' | '49' | '50' | '51' | '52' | '53';
+//cweeknum       : FIRSTTENWITHLEADINGZEROS | FIRSTTENWITHOUTLEADINGZEROS | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48' | '49' | '50' | '51' | '52' | '53';
 
 // Is it possible to allow numeric monthss?
 cmonth         : 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
@@ -38,23 +49,27 @@ csunlightevent : 'dawn' | 'sunrise' | 'sunset' | 'dusk';
 
 /* extended hour */
 // TODO test against values in database, adjust
-cwrappinghour  : '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48';
+//cwrappinghour  : '25' | '26' | '27' | '28' | '29' | '30' | '31' | '32' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' | '43' | '44' | '45' | '46' | '47' | '48';
 
 /* plus_or_minus */
 coffsetsymbols: '+' | '-';
 
+//TODO: refactor everything above first, have fun
+cminute        : positive_integer;
+chour          : positive_integer;
+cday           : positive_integer;
+cweeknum       : positive_integer;
+cwrappinghour  : positive_integer;
+
 //
 // Non-trivial rules below
 //
-NON_ZERO_DIGIT   : '1'..'9';
-DIGIT            : '0' | NON_ZERO_DIGIT;
+positive_integer : POSITIVE_INTEGER;
+negative_integer : '-' positive_integer; //TODO: see above about NEGATIVE_INTEGER
 
-//TODO: BUG in 2 rules below
-positive_integer          : NON_ZERO_DIGIT DIGIT*; //not sure if it is faster than '1'..'9' | '1'..'9'('0'..'9')+
-negative_integer          : '-' NON_ZERO_DIGIT DIGIT*; //duplication on purpose: negative_integer is not subtype of positive_integer
+//integer          : negative_integer | positive_integer;
 
-//hh_mm         : DIGIT DIGIT ':' DIGIT DIGIT;
-hh_mm           : chour ':' cminute;
+hh_mm         : POSITIVE_INTEGER ':' POSITIVE_INTEGER;
 
 /* extended_hour_minutes */
 wrapping_hh_mm : cwrappinghour ':' cminute;
@@ -79,11 +94,11 @@ ws : (' ' | '\t' | '\n')*?;
 //
 // status: WIP
 // week 4-16 We 00:00-24:00; week 38-42 Sa 00:00-24:00; PH off
+// week 2-52/2 We 00:00-24:00; week 1-53/2 Sa 00:00-24:00; PH off
+// Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
 // TODO unprocessed input below
 // 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1
-// week 2-52/2 We 00:00-24:00; week 1-53/2 Sa 00:00-24:00; PH off
 // 2012 easter -2 days-2012 easter +2 days: open "Around easter"; PH off
-// Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
 // Mo-Fr 08:00-12:00, We 14:00-18:00; Su,PH off
 
 
@@ -95,10 +110,10 @@ rule_sequence :
 
     //
     // Rule separators
-    // status: done, untested
+    // status: untested
     any_rule_separator        :
                                 normal_rule_separator
-//                              | additional_rule_separator // TODO: "Mo, Tu, Th, Fr 12:00-18:00; Sa, PH 12:00-17:00; Th[3],Th[-1] off"
+//                              | additional_rule_separator // TODO: ""
                               | fallback_rule_separator;
 
     normal_rule_separator     : ';' ws;
@@ -107,7 +122,7 @@ rule_sequence :
 
     //
     // Rule modifiers
-    // status: done, untested
+    // status: untested
     rule_modifier             :
                                 rule_modifier_empty
                               | rule_modifier_open
@@ -124,7 +139,7 @@ rule_sequence :
 
 //
 // Selectors
-// status: done, untested
+// status: untested
 selector_sequence     :
                         c247string
                       | small_range_selectors
@@ -137,8 +152,8 @@ small_range_selectors :
                       ;
 
     //
-    // Weekday selector (red)
-    // status: done, untested
+    // Weekday selector (Red)
+    // status: untested
     weekday_selector     :
                            weekday_sequence
                          | holiday_sequence
@@ -155,10 +170,10 @@ small_range_selectors :
      * Su[1]  - first Sunday of a month,
      * Su[-1] -  last Sunday of a month.
      */
-    weekday_ranges_range_nth        : cdayoftheweek '[' nth_entry (',' nth_entry)* ']';
-    weekday_ranges_range_nth_offset : cdayoftheweek '[' nth_entry (',' nth_entry)* ']' day_offset;
+    weekday_ranges_range_nth        : cdayoftheweek '[' nth_entry (',' ws nth_entry)* ']';
+    weekday_ranges_range_nth_offset : cdayoftheweek '[' nth_entry (',' ws nth_entry)* ']' day_offset;
 
-    holiday_sequence     : holiday (',' holiday)*;
+    holiday_sequence     : holiday (',' ws holiday)*;
     holiday              :
                            singular_day_holiday (ws day_offset ws)? // Only a day shift around one day (± 1 day) is currently defined.
                          | plural_day_holiday
@@ -172,9 +187,9 @@ small_range_selectors :
 
 
     //
-    // Time selector (blue)
-    // status: done, untested
-    time_selector            : timespan (',' timespan)*;
+    // Time selector (Blue)
+    // status: untested
+    time_selector            : timespan (',' ws timespan)*;
 
     timespan                 :
 //                             timespan_simple | // This is only valid in point in time mode (tags like collection_times=*)
@@ -185,12 +200,12 @@ small_range_selectors :
 //                             | timespan_case_everyPeriod
                              ;
 //    timespan_simple          : time;
+
+    // TODO: Ambiguities here?
+    timespan_range           : /*TIMERANGE*/ (time '-' time) | (time '-' wrapping_hh_mm);
+    timespan_range_openended : /*TIMERANGE*/ timespan_range '+';
+
     timespan_openended       : time '+';
-
-    // Ambiguities here?
-    timespan_range           : time '-' (time | wrapping_hh_mm);
-    timespan_range_openended : time '-' (time | wrapping_hh_mm) '+';
-
     /**
     This notation describes a repeated event:
 
@@ -209,55 +224,61 @@ small_range_selectors :
 
 wide_range_selectors  :
     ( //TODO: review combinations below
-      year_selector
-    | monthday_selector
+      year_sel
+    | calendarmonth_selector
     | week_selector
-    | year_selector monthday_selector
-    | year_selector monthday_selector week_selector
-    | year_selector week_selector
-    | monthday_selector week_selector
+    | year_sel calendarmonth_selector
+    | year_sel calendarmonth_selector week_selector
+    | year_sel week_selector
+    | calendarmonth_selector week_selector
     ) ':'? |
     comment (':')?
     ;
 
     //
     // Year selector (Orange)
-    // status: done, untested
-
-    year_selector                  : year_selector_single | year_selector_range | year_selector_single_openended | year_selector_range_special;
+    // status: untested
+    year_sel                       : year_selector (',' ws year_selector)*;
+    year_selector                  :
+                                     year_selector_single
+                                   | year_selector_single_cron
+                                   | year_selector_range
+                                   | year_selector_single_openended
+                                   | year_selector_range_cron
+                                   ;
     year_selector_range            : year_selector_single '-' year_selector_single;
-    year_selector_range_special    : year_selector_range '/' positive_integer;
+    year_selector_range_cron       : year_selector_range '/' positive_integer;
 
     /* year */
-    year_selector_single           : ('19' DIGIT  DIGIT ) | ('20' DIGIT DIGIT );
+    year_selector_single           : POSITIVE_INTEGER; // YEAR4LETTER;
+    year_selector_single_cron      : year_selector_single '/' positive_integer;
     year_selector_single_openended : year_selector_single '+';
 
     //
-    // Month selector
-    // status: done, untested
+    // Month selector (Green)
+    // status: untested
+    calendarmonth_selector        : calendarmonth_range (',' ws calendarmonth_range)*;
 
-    monthday_selector             : monthday_range (',' monthday_range)*;
-
-    monthday_range                :
-                                    monthday_range_one
-                                  | monthday_range_range
-                                  | monthday_range_cron
-                                  | monthday_range_from
-                                  | monthday_range_from_openended
-                                  | monthday_range_from_to
+    calendarmonth_range           :
+                                    calendarmonth_range_one
+                                  | calendarmonth_range_range
+                                  | calendarmonth_range_cron
+                                  | calendarmonth_range_from
+                                  | calendarmonth_range_from_openended
+                                  | calendarmonth_range_from_to
                                   ;
-    monthday_range_one            : year_selector_single? cmonth;
-    monthday_range_range          : year_selector_single? cmonth '-' cmonth;
-    monthday_range_cron           : year_selector_single? cmonth '-' cmonth  '/' positive_integer;
-    monthday_range_from           : date_from;
-    monthday_range_from_openended : date_from date_offset? '+';
-    monthday_range_from_to        : date_from date_offset? '-' date_to date_offset?;
+    calendarmonth_range_one            : year_selector_single? cmonth;
+    calendarmonth_range_range          : year_selector_single? cmonth '-' cmonth;
+    calendarmonth_range_cron           : year_selector_single? cmonth '-' cmonth  '/' positive_integer;
+    calendarmonth_range_from           : date_from;
+    calendarmonth_range_from_openended : date_from date_offset? '+';
+    calendarmonth_range_from_to        : date_from date_offset? '-' date_to date_offset?;
 
 
 						  /**
                             *  Given any calendar day:
                             * +Su - selects the first Sunday after this calendar day
-                            * -Su - selects the last Sunday before this calendar day. 
+                            * -Su - selects the last Sunday before this calendar day.
                            */
     date_offset          :
                            coffsetsymbols cdayoftheweek
@@ -265,7 +286,7 @@ wide_range_selectors  :
                          ;
 
     date_from            :
-                           year_selector_single? cmonth cday
+                           year_selector_single? cmonth ws cday
                          | year_selector_single? moveable_holidays
                          ;
     date_to              : date_from | cday;
@@ -276,8 +297,8 @@ wide_range_selectors  :
 
     //
     // Calendar week selector (Yellow)
-    // status: done, untested
-    week_selector        : 'week ' week (',' week)*;
+    // status: untested
+    week_selector        : 'week ' week (',' ws week)*;
     week                 : week_simple | week_range | week_range_cron;
     week_simple          : cweeknum;
     week_range           : cweeknum '-' cweeknum;
