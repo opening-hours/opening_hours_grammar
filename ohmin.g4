@@ -97,6 +97,7 @@ WS : [' ' | '\t' | '\n']+ -> channel(HIDDEN);
 // Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
 // Mo-Fr 08:00-12:00, We 14:00-18:00; Su,PH off
 // 2012 easter -2 days-2012 easter +2 days: open "Around easter"; PH off
+// Mo-Fr 12:00-21:00/03:00
 // TODO incomplete parsing of input below
 // 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1
 
@@ -185,14 +186,16 @@ small_range_selectors :
                              timespan_openended
                              | timespan_range
                              | timespan_range_openended
+                             | timespan_range_cron
 //                             | timespan_case_everyNminutes
 //                             | timespan_case_everyPeriod
                              ;
 //    timespan_simple          : time;
 
-    // TODO: Ambiguities here?
+    // Ambiguities in '-12' as number or '-'hour
     timespan_range           : /*TIMERANGE*/ time '-' time; //wrapping_hh_mm
     timespan_range_openended : /*TIMERANGE*/ timespan_range '+';
+    timespan_range_cron      : /*TIMERANGE*/ time '-' time '/' time; //wrapping_hh_mm
 
     timespan_openended       : time '+';
     /**
