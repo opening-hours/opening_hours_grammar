@@ -7,12 +7,12 @@ grammar ohmin;
 
 c247string     : '24/7';
 
-//HH_MM            : POSITIVE_INTEGER ':' POSITIVE_INTEGER;
+//HH_MM            : NUMBERS ':' NUMBERS;
 //TIMERANGE        : HH_MM '-' HH_MM;
 
 //TODO: not sure how to include negative integer separately or why it is impossible
 //NEGATIVE_INTEGER : '-' (('1'..'9') | ('1'..'9')('0'..'9')+);
-POSITIVE_INTEGER : '0'+ | ('1'..'9') | ('1'..'9')('0'..'9')+;
+NUMBERS : '0' | '00' | '0'? ('1'..'9') | ('1'..'9')('0'..'9')+;
 
 /* How to make them live together with rules above?
 YEAR4LETTER      : ('19' | '20') '0'..'9' '0'..'9';
@@ -55,36 +55,35 @@ csunlightevent : 'dawn' | 'sunrise' | 'sunset' | 'dusk';
 coffsetsymbols: '+' | '-';
 
 //TODO: refactor everything above first, have fun
-cminute        : positive_integer;
-chour          : positive_integer;
-cday           : positive_integer;
-cweeknum       : positive_integer;
-cwrappinghour  : positive_integer;
+cminute        : NUMBERS;
+chour          : NUMBERS;
+cday           : NUMBERS;
+cweeknum       : NUMBERS;
+cwrappinghour  : NUMBERS;
 
 //
 // Non-trivial rules below
 //
-positive_integer : POSITIVE_INTEGER;
+positive_integer : NUMBERS;
 negative_integer : '-' positive_integer; //TODO: see above about NEGATIVE_INTEGER
 
 //integer          : negative_integer | positive_integer;
 
-hh_mm         : POSITIVE_INTEGER ':' POSITIVE_INTEGER;
+hh_mm         : chour ':' cminute;
 
 /* extended_hour_minutes */
-wrapping_hh_mm : cwrappinghour ':' cminute;
+//wrapping_hh_mm : cwrappinghour ':' cminute;
 
 
-COMMENT             : '"' ~('"')+? '"'; //Allow or restrict empty comments?
-COMMENT_EMPTY       : '""';
-comment             : COMMENT | COMMENT_EMPTY;
+COMMENT             : '"' ~('"')+? '"';
+comment             :
+                      COMMENT #Nonemptycomment
+                    | '""'    #Emptycomment
+                    ;
 
 nth_entry           : negative_integer | positive_integer | positive_integer'-'positive_integer;
 
-
-// TODO decide what to do with ws/WS
-ws : (' ' | '\t' | '\n')*?;
-//WS : [' ' | '\t' | '\n']+ -> channel(HIDDEN);
+WS : [' ' | '\t' | '\n']+ -> channel(HIDDEN);
 
 //
 // TOP-level rule and actual grammar below
@@ -96,29 +95,21 @@ ws : (' ' | '\t' | '\n')*?;
 // week 4-16 We 00:00-24:00; week 38-42 Sa 00:00-24:00; PH off
 // week 2-52/2 We 00:00-24:00; week 1-53/2 Sa 00:00-24:00; PH off
 // Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
-// TODO unprocessed input below
-// 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1
-// 2012 easter -2 days-2012 easter +2 days: open "Around easter"; PH off
 // Mo-Fr 08:00-12:00, We 14:00-18:00; Su,PH off
+// 2012 easter -2 days-2012 easter +2 days: open "Around easter"; PH off
+// TODO incomplete parsing of input below
+// 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1
 
 
-time_domain   : rule_sequence (any_rule_separator rule_sequence)*;
+opening_hours : rule_sequence (rule_separator rule_sequence)* EOF;
 rule_sequence :
                 selector_sequence /* If no rule_modifier is specified, then the rule_sequence is interpreted as open. */
 //              | rule_modifier // TODO: is this possible?
-              | selector_sequence ws rule_modifier;
+              | selector_sequence rule_modifier;
 
-    //
-    // Rule separators
-    // status: untested
-    any_rule_separator        :
-                                normal_rule_separator
-//                              | additional_rule_separator // TODO: ""
-                              | fallback_rule_separator;
-
-    normal_rule_separator     : ';' ws;
-//    additional_rule_separator : ',' ws;
-    fallback_rule_separator   : ' || ';
+    rule_separator :
+                     ';'    #rule_separator_normal
+                   | ' || ' #rule_separator_fallback;
 
     //
     // Rule modifiers
@@ -131,9 +122,9 @@ rule_sequence :
                               | rule_modifier_comment
                               ;
     rule_modifier_empty       : '';                                   // TODO defaults to 'open'
-    rule_modifier_open        : ('open') (ws comment)?;              // TODO 'opened'
-    rule_modifier_closed      : ('closed' | 'off') (ws comment)?;    // TODO 'closed'
-    rule_modifier_unknown     : ('unknown') (ws comment)?;           // TODO 'unknown'
+    rule_modifier_open        : ('open') (comment)?;              // TODO 'opened'
+    rule_modifier_closed      : ('closed' | 'off') (comment)?;    // TODO 'closed'
+    rule_modifier_unknown     : ('unknown') (comment)?;           // TODO 'unknown'
     rule_modifier_comment     : comment;                              // TODO defaults to 'unknown'
 
 
@@ -144,10 +135,10 @@ selector_sequence     :
                         c247string
                       | small_range_selectors
                       | wide_range_selectors
-                      | wide_range_selectors ws small_range_selectors;
+                      | wide_range_selectors small_range_selectors;
 small_range_selectors :
                         weekday_selector
-                      | weekday_selector ws time_selector // spec says both are required (only this case), but this is not true in practice
+                      | weekday_selector time_selector  (',' weekday_selector time_selector)? // spec says both are required (only this case), but this is not true in practice
                       | time_selector
                       ;
 
@@ -157,10 +148,12 @@ small_range_selectors :
     weekday_selector     :
                            weekday_sequence
                          | holiday_sequence
-                         | holiday_sequence ws ',' ws weekday_sequence
-                         | weekday_sequence ws ',' ws holiday_sequence
+                         | holiday_sequence ',' weekday_sequence
+                         | weekday_sequence ',' holiday_sequence
                          ; // any semantic difference between ', ' and ' '?
-    weekday_sequence     : weekday_ranges (',' ws weekday_ranges)*;
+    weekday_sequence     : weekday_ranges (',' weekday_ranges)*;
+
+    //TODO: refactor "weekday_ranges" names
     weekday_ranges        : weekday_ranges_single | weekday_ranges_range | weekday_ranges_range_nth | weekday_ranges_range_nth_offset;
     weekday_ranges_single : cdayoftheweek;
     weekday_ranges_range  : cdayoftheweek '-' cdayoftheweek;
@@ -170,26 +163,22 @@ small_range_selectors :
      * Su[1]  - first Sunday of a month,
      * Su[-1] -  last Sunday of a month.
      */
-    weekday_ranges_range_nth        : cdayoftheweek '[' nth_entry (',' ws nth_entry)* ']';
-    weekday_ranges_range_nth_offset : cdayoftheweek '[' nth_entry (',' ws nth_entry)* ']' day_offset;
+    weekday_ranges_range_nth        : cdayoftheweek '[' nth_entry (',' nth_entry)* ']';
+    weekday_ranges_range_nth_offset : cdayoftheweek '[' nth_entry (',' nth_entry)* ']' day_offset;
 
-    holiday_sequence     : holiday (',' ws holiday)*;
-    holiday              :
-                           singular_day_holiday (ws day_offset ws)? // Only a day shift around one day (± 1 day) is currently defined.
-                         | plural_day_holiday
+    holiday_sequence     : holiday (',' holiday)*;
+    holiday              :                                          // https://github.com/opening-hours/opening_hours.js#holidays
+                           'PH' (day_offset)? #singular_day_holiday // Only a day shift around one day (± 1 day) is currently defined.
+                         | 'SH'               #plural_day_holiday
                          ;
 
-    singular_day_holiday : 'PH'; // https://github.com/opening-hours/opening_hours.js#holidays
-    plural_day_holiday   : 'SH';
-
-
-    day_offset           : (( '+' positive_integer) | (negative_integer)) ws ('day' 's'?);
+    day_offset           : (( '+' positive_integer) | (negative_integer)) ('day' 's'?);
 
 
     //
     // Time selector (Blue)
     // status: untested
-    time_selector            : timespan (',' ws timespan)*;
+    time_selector            : timespan (',' timespan)*;
 
     timespan                 :
 //                             timespan_simple | // This is only valid in point in time mode (tags like collection_times=*)
@@ -202,7 +191,7 @@ small_range_selectors :
 //    timespan_simple          : time;
 
     // TODO: Ambiguities here?
-    timespan_range           : /*TIMERANGE*/ (time '-' time) | (time '-' wrapping_hh_mm);
+    timespan_range           : /*TIMERANGE*/ time '-' time; //wrapping_hh_mm
     timespan_range_openended : /*TIMERANGE*/ timespan_range '+';
 
     timespan_openended       : time '+';
@@ -238,7 +227,7 @@ wide_range_selectors  :
     //
     // Year selector (Orange)
     // status: untested
-    year_sel                       : year_selector (',' ws year_selector)*;
+    year_sel                       : year_selector (',' year_selector)*;
     year_selector                  :
                                      year_selector_single
                                    | year_selector_single_cron
@@ -250,24 +239,25 @@ wide_range_selectors  :
     year_selector_range_cron       : year_selector_range '/' positive_integer;
 
     /* year */
-    year_selector_single           : POSITIVE_INTEGER; // YEAR4LETTER;
+    year_selector_single           : NUMBERS; // YEAR4LETTER;
     year_selector_single_cron      : year_selector_single '/' positive_integer;
     year_selector_single_openended : year_selector_single '+';
 
     //
     // Month selector (Green)
     // status: untested
-    calendarmonth_selector        : calendarmonth_range (',' ws calendarmonth_range)*;
+    calendarmonth_selector        : calendarmonth_range (',' calendarmonth_range)*;
 
     calendarmonth_range           :
-                                    calendarmonth_range_one
+                                    calendarmonth_range_single
                                   | calendarmonth_range_range
                                   | calendarmonth_range_cron
                                   | calendarmonth_range_from
                                   | calendarmonth_range_from_openended
                                   | calendarmonth_range_from_to
                                   ;
-    calendarmonth_range_one            : year_selector_single? cmonth;
+    //TODO: review year_selector_single? in rules below (see wide_range_selectors)
+    calendarmonth_range_single            : year_selector_single? cmonth;
     calendarmonth_range_range          : year_selector_single? cmonth '-' cmonth;
     calendarmonth_range_cron           : year_selector_single? cmonth '-' cmonth  '/' positive_integer;
     calendarmonth_range_from           : date_from;
@@ -286,7 +276,7 @@ wide_range_selectors  :
                          ;
 
     date_from            :
-                           year_selector_single? cmonth ws cday
+                           year_selector_single? cmonth cday
                          | year_selector_single? moveable_holidays
                          ;
     date_to              : date_from | cday;
@@ -298,8 +288,8 @@ wide_range_selectors  :
     //
     // Calendar week selector (Yellow)
     // status: untested
-    week_selector        : 'week ' week (',' ws week)*;
-    week                 : week_simple | week_range | week_range_cron;
-    week_simple          : cweeknum;
+    week_selector        : 'week ' week (',' week)*;
+    week                 : week_single | week_range | week_range_cron;
+    week_single          : cweeknum;
     week_range           : cweeknum '-' cweeknum;
     week_range_cron      : cweeknum '-' cweeknum '/' positive_integer;
