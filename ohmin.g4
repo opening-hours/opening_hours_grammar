@@ -94,12 +94,17 @@ WS : [' ' | '\t' | '\n']+ -> channel(HIDDEN);
 // status: WIP
 // week 4-16 We 00:00-24:00; week 38-42 Sa 00:00-24:00; PH off
 // week 2-52/2 We 00:00-24:00; week 1-53/2 Sa 00:00-24:00; PH off
-// Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
+// Jan 23-Feb 11 00:00-24:00; PH off
 // Mo-Fr 08:00-12:00, We 14:00-18:00; Su,PH off
 // 2012 easter -2 days-2012 easter +2 days: open "Around easter"; PH off
 // Mo-Fr 12:00-21:00/03:00
-// TODO incomplete parsing of input below
 // 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1
+// 2013,2015,2050-2053,2055/2,2020-2029/3,2060+ Jan 1-14
+//
+// TODO: incorrectly processed input below
+// Jan 23-Feb 11,Feb 12 00:00-24:00; PH off
+//
+// Anything else?
 
 
 opening_hours : rule_sequence (rule_separator rule_sequence)* EOF;
@@ -217,6 +222,8 @@ small_range_selectors :
 wide_range_selectors  :
     ( //TODO: review combinations below
       year_sel
+    | year_sel date_from
+    | year_sel calendarmonth_range //
     | calendarmonth_selector
     | week_selector
     | year_sel calendarmonth_selector
@@ -230,6 +237,7 @@ wide_range_selectors  :
     //
     // Year selector (Orange)
     // status: untested
+    //TODO: ideally, we should have rules for "single year" and "multiple years". Out of ideas how to refactor all rules below.
     year_sel                       : year_selector (',' year_selector)*;
     year_selector                  :
                                      year_selector_single
@@ -255,15 +263,15 @@ wide_range_selectors  :
                                     calendarmonth_range_single
                                   | calendarmonth_range_range
                                   | calendarmonth_range_cron
-                                  | calendarmonth_range_from
+//                                  | calendarmonth_range_from
                                   | calendarmonth_range_from_openended
                                   | calendarmonth_range_from_to
                                   ;
-    //TODO: review year_selector_single? in rules below (see wide_range_selectors)
-    calendarmonth_range_single            : year_selector_single? cmonth;
-    calendarmonth_range_range          : year_selector_single? cmonth '-' cmonth;
-    calendarmonth_range_cron           : year_selector_single? cmonth '-' cmonth  '/' positive_integer;
-    calendarmonth_range_from           : date_from;
+    //year_selector_single?
+    calendarmonth_range_single         : cmonth;
+    calendarmonth_range_range          : cmonth '-' cmonth;
+    calendarmonth_range_cron           : cmonth '-' cmonth  '/' positive_integer;
+//    calendarmonth_range_from           : date_from;
     calendarmonth_range_from_openended : date_from date_offset? '+';
     calendarmonth_range_from_to        : date_from date_offset? '-' date_to date_offset?;
 
@@ -296,3 +304,4 @@ wide_range_selectors  :
     week_single          : cweeknum;
     week_range           : cweeknum '-' cweeknum;
     week_range_cron      : cweeknum '-' cweeknum '/' positive_integer;
+    
